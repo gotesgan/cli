@@ -1,3 +1,4 @@
+import {type CrawlerSignatureHeaders} from './crawler-signature.js'
 import {isStorefrontPasswordCorrect} from './storefront-session.js'
 import {
   getStorefrontPassword,
@@ -10,7 +11,11 @@ import {renderTextPrompt, TokenItem} from '@shopify/cli-kit/node/ui'
 
 import {storePasswordPage} from '@shopify/cli-kit/node/themes/urls'
 
-export async function ensureValidPassword(password: string | undefined, store: string) {
+export async function ensureValidPassword(
+  password: string | undefined,
+  store: string,
+  crawlerSignatureHeaders?: CrawlerSignatureHeaders,
+) {
   /*
    * This allows us to call ensureValidPassword() in other packages
    * without the need to explicitly import and call ensureThemeStore() upstream
@@ -34,7 +39,7 @@ export async function ensureValidPassword(password: string | undefined, store: s
   let isPasswordRemoved = false
 
   // eslint-disable-next-line no-await-in-loop
-  while (!(await isStorefrontPasswordCorrect(finalPassword, store))) {
+  while (!(await isStorefrontPasswordCorrect(finalPassword, store, crawlerSignatureHeaders))) {
     if (!isPasswordRemoved) {
       removeStorefrontPassword()
       isPasswordRemoved = true
