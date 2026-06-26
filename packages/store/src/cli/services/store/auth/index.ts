@@ -18,6 +18,7 @@ export {listStoredStoreAuthSummaries, type StoredStoreAuthSummary} from './store
 interface StoreAuthInput {
   store: string
   scopes: string
+  signup?: string
 }
 
 interface StoreAuthDependencies {
@@ -62,6 +63,7 @@ export async function authenticateStoreWithApp(
   const bootstrap = createPkceBootstrap({
     store,
     scopes,
+    signup: input.signup,
     exchangeCodeForToken: resolvedDependencies.exchangeStoreAuthCodeForToken,
   })
   const {
