@@ -110,7 +110,7 @@ describe('runAdminStoreGraphQLOperation', () => {
     expect(clearStoredStoreAppSession).toHaveBeenCalledWith(store, '42')
   })
 
-  test('does not re-list preapproved scopes when a lingering preview session 401s', async () => {
+  test('flags a likely claim and does not re-list scopes when a lingering preview session 401s', async () => {
     vi.mocked(graphqlRequest).mockRejectedValue({response: {status: 401}})
     const request = await prepareStoreExecuteRequest({query: 'query { shop { name } }'})
     const previewContext = {
@@ -124,6 +124,7 @@ describe('runAdminStoreGraphQLOperation', () => {
     }
 
     await expect(runAdminStoreGraphQLOperation({context: previewContext, request})).rejects.toMatchObject({
+      message: `The preview store ${store} has likely been claimed, so its stored authentication is no longer valid.`,
       nextSteps: [
         [
           'Run',
@@ -272,7 +273,7 @@ describe('fetchPublicApiVersions', () => {
     expect(clearStoredStoreAppSession).toHaveBeenCalledWith(store, '42')
   })
 
-  test('does not re-list preapproved scopes when a lingering preview session 401s', async () => {
+  test('flags a likely claim and does not re-list scopes when a lingering preview session 401s', async () => {
     vi.mocked(graphqlRequest).mockRejectedValue(makeClientErrorLike(401, 'Unauthorized'))
     const previewSession = {
       ...session,
@@ -282,6 +283,7 @@ describe('fetchPublicApiVersions', () => {
     }
 
     await expect(fetchPublicApiVersions({adminSession, session: previewSession})).rejects.toMatchObject({
+      message: `The preview store ${store} has likely been claimed, so its stored authentication is no longer valid.`,
       nextSteps: [
         [
           'Run',

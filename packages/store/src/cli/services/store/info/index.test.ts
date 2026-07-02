@@ -561,7 +561,7 @@ The CLI is currently unable to prompt for reauthentication.`)
     expect(clearStoredStoreAppSession).toHaveBeenCalledWith(SHOP, '42')
   })
 
-  test('does not re-list scopes or clear a lingering preview session that 401s against Admin', async () => {
+  test('flags a likely claim (not a generic invalid-auth error) for a lingering preview session that 401s against Admin', async () => {
     mockStoreAuthFallback()
     vi.mocked(loadStoredStoreSession).mockResolvedValue({
       ...STORED_SESSION,
@@ -572,7 +572,7 @@ The CLI is currently unable to prompt for reauthentication.`)
     vi.mocked(graphqlRequest).mockRejectedValue(makeClientErrorLike(401, 'Unauthorized'))
 
     await expect(getStoreInfo({store: SHOP})).rejects.toMatchObject({
-      message: `Stored app authentication for ${SHOP} is no longer valid.`,
+      message: `The preview store ${SHOP} has likely been claimed, so its stored authentication is no longer valid.`,
       nextSteps: [
         [
           'Run',

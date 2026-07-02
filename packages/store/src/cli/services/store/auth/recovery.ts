@@ -38,6 +38,20 @@ export function throwReauthenticateStoreAuthError(message: string, session: Stor
   )
 }
 
+// A preview store's local session has no way to know it was claimed through the browser claim
+// flow; a 401/404 the first time the stale session is used again is the only signal. Surfacing
+// that possibility is more useful than the generic "no longer valid" message a standard session
+// gets, so every call site that detects an invalid stored session (regardless of which API it
+// hit) should go through here instead of writing its own message.
+export function throwStoredAuthInvalidError(session: StoredStoreAppSession): never {
+  const message =
+    session.kind === 'preview'
+      ? `The preview store ${session.store} has likely been claimed, so its stored authentication is no longer valid.`
+      : `Stored app authentication for ${session.store} is no longer valid.`
+
+  throwReauthenticateStoreAuthError(message, session)
+}
+
 export function retryStoreAuthWithPermanentDomainError(returnedStore: string): AbortError {
   // eslint-disable-next-line @shopify/cli/no-error-factory-functions
   return new AbortError(

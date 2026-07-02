@@ -3,7 +3,7 @@ import {fetchOrganizationShop} from './organization-shop.js'
 import {mapPlanToPublicHandle} from './plan.js'
 import {classifyAdminApiError, throwIfStoredStoreAuthIsInvalid} from '../admin-errors.js'
 import {recordStoreFqdnMetadata} from '../attribution.js'
-import {throwReauthenticateStoreAuthError} from '../auth/recovery.js'
+import {throwStoredAuthInvalidError} from '../auth/recovery.js'
 import {loadStoredStoreSession} from '../auth/session-lifecycle.js'
 import {getPreviewStore, PreviewStoreRequestError} from '../create/preview/client.js'
 import {storeTypeHandle} from '../store-type.js'
@@ -163,10 +163,7 @@ async function fetchPreviewStoreUrls(previewSession: PreviewStoreSession): Promi
     // isn't needed for `store auth` to take over, and keeping it means every `store info` run
     // keeps producing this same actionable message instead of falling through to a full login.
     if (error instanceof PreviewStoreRequestError && (error.status === 401 || error.status === 404)) {
-      throwReauthenticateStoreAuthError(
-        `The preview store ${previewSession.store} has likely been claimed, so its stored authentication is no longer valid.`,
-        previewSession,
-      )
+      throwStoredAuthInvalidError(previewSession)
     }
 
     throw error

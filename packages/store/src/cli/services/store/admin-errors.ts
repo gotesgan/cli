@@ -1,4 +1,4 @@
-import {throwReauthenticateStoreAuthError} from './auth/recovery.js'
+import {throwStoredAuthInvalidError} from './auth/recovery.js'
 import {clearStoredStoreAppSession} from '@shopify/cli-kit/node/store-auth-session'
 import {AbortError} from '@shopify/cli-kit/node/error'
 import type {StoredStoreAppSession} from '@shopify/cli-kit/node/store-auth-session'
@@ -66,5 +66,5 @@ export function throwIfStoredStoreAuthIsInvalid(error: unknown, session: StoredS
     clearStoredStoreAppSession(session.store, session.userId)
   }
 
-  throwReauthenticateStoreAuthError(`Stored app authentication for ${session.store} is no longer valid.`, session)
+  throwStoredAuthInvalidError(session)
 }
