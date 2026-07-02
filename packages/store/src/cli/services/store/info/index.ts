@@ -7,7 +7,7 @@ import {throwReauthenticateStoreAuthError} from '../auth/recovery.js'
 import {loadStoredStoreSession} from '../auth/session-lifecycle.js'
 import {getPreviewStore, PreviewStoreRequestError} from '../create/preview/client.js'
 import {storeTypeHandle} from '../store-type.js'
-import {clearStoredStoreAppSession, getCurrentStoredStoreAppSession} from '@shopify/cli-kit/node/store-auth-session'
+import {getCurrentStoredStoreAppSession} from '@shopify/cli-kit/node/store-auth-session'
 import {AbortError} from '@shopify/cli-kit/node/error'
 import {adminUrl} from '@shopify/cli-kit/node/api/admin'
 import {graphqlRequest} from '@shopify/cli-kit/node/api/graphql'
@@ -161,10 +161,15 @@ async function fetchPreviewStoreUrls(previewSession: PreviewStoreSession): Promi
     // The CLI has no local signal for when a preview store gets claimed through the browser
     // claim flow; the stored session keeps reporting `kind: 'preview'` forever. A 401/404 from
     // the preview-stores service is the first indication that the store has moved on and the
-    // cached preview token is no longer valid, so treat it the same way the Admin API paths
-    // treat a stale stored session: clear it and point the user at `store auth`.
+    // cached preview token is no longer valid.
+    //
+    // Deliberately left uncleared: `store auth` overwrites the bucket's `currentUserId` when it
+    // stores a fresh session, so nothing depends on this preview entry being removed first. And
+    // unlike a standard session's refresh-token flow, there's no automatic-retry loop here that
+    // clearing would protect against. Leaving it in place means every `store info` run before
+    // the user re-authenticates keeps producing this same actionable message, instead of
+    // silently falling through to a full interactive login on the next attempt.
     if (error instanceof PreviewStoreRequestError && (error.status === 401 || error.status === 404)) {
-      clearStoredStoreAppSession(previewSession.store, previewSession.userId)
       throwReauthenticateStoreAuthError(
         `The preview store ${previewSession.store} has likely been claimed, so its stored authentication is no longer valid.`,
         previewSession.store,
