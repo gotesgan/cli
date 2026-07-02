@@ -222,10 +222,6 @@ describe('getStoreInfo', () => {
           ['Run', {command: `shopify store auth --store ${SHOP} --scopes read_products`}, 'to re-authenticate'],
         ],
       })
-      // `store auth` overwrites the bucket's `currentUserId` when it stores a fresh session, so
-      // clearing this preview entry first isn't necessary — and not clearing it means repeated
-      // `store info` runs keep producing this same actionable message instead of silently
-      // falling through to a full interactive login on the next attempt.
       expect(clearStoredStoreAppSession).not.toHaveBeenCalled()
     },
   )

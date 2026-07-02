@@ -87,15 +87,12 @@ interface RawPreviewStoreErrorResponse {
  * 401/404 that signals the preview store has since been claimed) instead of only seeing a
  * pre-rendered message string.
  */
-export class PreviewStoreRequestError extends Error {
+export class PreviewStoreRequestError extends AbortError {
   public readonly status: number
-  public readonly tryMessage?: string
 
   constructor(status: number, message: string, tryMessage?: string) {
-    super(message)
-    this.name = 'PreviewStoreRequestError'
+    super(message, tryMessage ?? null)
     this.status = status
-    this.tryMessage = tryMessage
   }
 }
 
