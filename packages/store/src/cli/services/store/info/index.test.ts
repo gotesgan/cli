@@ -201,7 +201,9 @@ describe('getStoreInfo', () => {
         clientId: STORE_AUTH_APP_CLIENT_ID,
         userId: 'preview:placeholder-uuid',
         accessToken: 'shpat_preview_token',
-        scopes: ['read_products'],
+        // Preview stores are preapproved for a large, fixed scope catalog; the re-auth message
+        // should not dump the whole list back at the user (see the placeholder assertion below).
+        scopes: ['read_products', 'write_products', 'read_themes'],
         acquiredAt: '2026-06-08T12:00:00.000Z',
         kind: 'preview',
         preview: {
@@ -219,7 +221,11 @@ describe('getStoreInfo', () => {
       await expect(getStoreInfo({store: SHOP})).rejects.toMatchObject({
         message: `The preview store ${SHOP} has likely been claimed, so its stored authentication is no longer valid.`,
         nextSteps: [
-          ['Run', {command: `shopify store auth --store ${SHOP} --scopes read_products`}, 'to re-authenticate'],
+          [
+            'Run',
+            {command: `shopify store auth --store ${SHOP} --scopes <comma-separated-scopes>`},
+            'to re-authenticate',
+          ],
         ],
       })
       expect(clearStoredStoreAppSession).not.toHaveBeenCalled()

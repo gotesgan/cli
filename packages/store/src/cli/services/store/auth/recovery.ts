@@ -1,5 +1,7 @@
 import {AbortError} from '@shopify/cli-kit/node/error'
 
+export const UNKNOWN_SCOPES_PLACEHOLDER = '<comma-separated-scopes>'
+
 function storeAuthCommand(store: string, scopes: string): {command: string} {
   return {command: `shopify store auth --store ${store} --scopes ${scopes}`}
 }
@@ -16,7 +18,7 @@ export function throwStoredStoreAuthError(store: string): never {
   throw new AbortError(
     `No stored app authentication found for ${store}.`,
     undefined,
-    storeAuthCommandNextStepsToReauthenticate(store, '<comma-separated-scopes>'),
+    storeAuthCommandNextStepsToReauthenticate(store, UNKNOWN_SCOPES_PLACEHOLDER),
   )
 }
 
@@ -29,6 +31,6 @@ export function retryStoreAuthWithPermanentDomainError(returnedStore: string): A
   return new AbortError(
     'OAuth callback store does not match the requested store.',
     `Shopify returned ${returnedStore} during authentication. Re-run using the permanent store domain:`,
-    storeAuthCommandNextSteps(returnedStore, '<comma-separated-scopes>'),
+    storeAuthCommandNextSteps(returnedStore, UNKNOWN_SCOPES_PLACEHOLDER),
   )
 }
