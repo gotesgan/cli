@@ -100,6 +100,40 @@ describe('runAdminStoreGraphQLOperation', () => {
     expect(clearStoredStoreAppSession).toHaveBeenCalledWith(store, '42')
   })
 
+  test('also treats a 404 as a stored-auth-no-longer-valid signal', async () => {
+    vi.mocked(graphqlRequest).mockRejectedValue(makeClientErrorLike(404, 'Not Found'))
+    const request = await prepareStoreExecuteRequest({query: 'query { shop { name } }'})
+
+    await expect(runAdminStoreGraphQLOperation({context, request})).rejects.toMatchObject({
+      message: `Stored app authentication for ${store} is no longer valid.`,
+    })
+    expect(clearStoredStoreAppSession).toHaveBeenCalledWith(store, '42')
+  })
+
+  test('does not re-list preapproved scopes when a lingering preview session 401s', async () => {
+    vi.mocked(graphqlRequest).mockRejectedValue({response: {status: 401}})
+    const request = await prepareStoreExecuteRequest({query: 'query { shop { name } }'})
+    const previewContext = {
+      ...context,
+      session: {
+        ...context.session,
+        userId: 'preview:placeholder-uuid',
+        kind: 'preview' as const,
+        scopes: ['read_products', 'write_products', 'read_themes'],
+      },
+    }
+
+    await expect(runAdminStoreGraphQLOperation({context: previewContext, request})).rejects.toMatchObject({
+      nextSteps: [
+        [
+          'Run',
+          {command: `shopify store auth --store ${store} --scopes <comma-separated-scopes>`},
+          'to re-authenticate',
+        ],
+      ],
+    })
+  })
+
   test('throws a GraphQL operation error when errors are returned', async () => {
     vi.mocked(graphqlRequest).mockRejectedValue({response: {errors: [{message: 'Field does not exist'}]}})
     const request = await prepareStoreExecuteRequest({query: 'query { nope }'})
@@ -235,6 +269,26 @@ describe('fetchPublicApiVersions', () => {
       message: `Stored app authentication for ${store} is no longer valid.`,
     })
     expect(clearStoredStoreAppSession).toHaveBeenCalledWith(store, '42')
+  })
+
+  test('does not re-list preapproved scopes when a lingering preview session 401s', async () => {
+    vi.mocked(graphqlRequest).mockRejectedValue(makeClientErrorLike(401, 'Unauthorized'))
+    const previewSession = {
+      ...session,
+      userId: 'preview:placeholder-uuid',
+      kind: 'preview' as const,
+      scopes: ['read_products', 'write_products', 'read_themes'],
+    }
+
+    await expect(fetchPublicApiVersions({adminSession, session: previewSession})).rejects.toMatchObject({
+      nextSteps: [
+        [
+          'Run',
+          {command: `shopify store auth --store ${store} --scopes <comma-separated-scopes>`},
+          'to re-authenticate',
+        ],
+      ],
+    })
   })
 
   test('maps 402 Unavailable Shop to an AbortError without clearing stored auth', async () => {
