@@ -11,8 +11,8 @@ function storeAuthCommandNextStepsWithUnknownScopes(store: string) {
   return [[storeAuthCommand(store, UNKNOWN_SCOPES_PLACEHOLDER)]]
 }
 
-function storeAuthCommandNextStepsToReauthenticate(store: string, scopes: string) {
-  return [['Run', storeAuthCommand(store, scopes), 'to re-authenticate']]
+function storeAuthCommandNextStepsWithPurpose(store: string, scopes: string, purpose: string) {
+  return [['Run', storeAuthCommand(store, scopes), purpose]]
 }
 
 // Preview-store sessions are preapproved for a large, fixed scope catalog (often 30+ scopes).
@@ -26,7 +26,7 @@ export function throwStoredStoreAuthError(store: string): never {
   throw new AbortError(
     `No stored app authentication found for ${store}.`,
     undefined,
-    storeAuthCommandNextStepsToReauthenticate(store, UNKNOWN_SCOPES_PLACEHOLDER),
+    storeAuthCommandNextStepsWithPurpose(store, UNKNOWN_SCOPES_PLACEHOLDER, 'to authenticate'),
   )
 }
 
@@ -34,7 +34,7 @@ export function throwReauthenticateStoreAuthError(message: string, session: Stor
   throw new AbortError(
     message,
     undefined,
-    storeAuthCommandNextStepsToReauthenticate(session.store, reauthScopesFor(session)),
+    storeAuthCommandNextStepsWithPurpose(session.store, reauthScopesFor(session), 'to re-authenticate'),
   )
 }
 

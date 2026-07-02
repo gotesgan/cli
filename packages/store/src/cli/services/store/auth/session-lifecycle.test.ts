@@ -63,6 +63,13 @@ describe('loadStoredStoreSession', () => {
 
     await expect(loadStoredStoreSession('shop.myshopify.com')).rejects.toMatchObject({
       message: 'No stored app authentication found for shop.myshopify.com.',
+      nextSteps: [
+        [
+          'Run',
+          {command: 'shopify store auth --store shop.myshopify.com --scopes <comma-separated-scopes>'},
+          'to authenticate',
+        ],
+      ],
     })
   })
 
