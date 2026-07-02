@@ -1,7 +1,7 @@
 import {AbortError} from '@shopify/cli-kit/node/error'
 import type {StoredStoreAppSession} from '@shopify/cli-kit/node/store-auth-session'
 
-export const UNKNOWN_SCOPES_PLACEHOLDER = '<comma-separated-scopes>'
+const UNKNOWN_SCOPES_PLACEHOLDER = '<comma-separated-scopes>'
 
 function storeAuthCommand(store: string, scopes: string): {command: string} {
   return {command: `shopify store auth --store ${store} --scopes ${scopes}`}
