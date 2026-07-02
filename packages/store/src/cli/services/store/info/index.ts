@@ -1,7 +1,7 @@
 import {StoreInfoBusinessPlatformStoreNotFoundError, fetchDestinationsContext} from './destinations.js'
 import {fetchOrganizationShop} from './organization-shop.js'
 import {mapPlanToPublicHandle} from './plan.js'
-import {classifyAdminApiError, reauthScopesFor, throwIfStoredStoreAuthIsInvalid} from '../admin-errors.js'
+import {classifyAdminApiError, throwIfStoredStoreAuthIsInvalid} from '../admin-errors.js'
 import {recordStoreFqdnMetadata} from '../attribution.js'
 import {throwReauthenticateStoreAuthError} from '../auth/recovery.js'
 import {loadStoredStoreSession} from '../auth/session-lifecycle.js'
@@ -165,8 +165,7 @@ async function fetchPreviewStoreUrls(previewSession: PreviewStoreSession): Promi
     if (error instanceof PreviewStoreRequestError && (error.status === 401 || error.status === 404)) {
       throwReauthenticateStoreAuthError(
         `The preview store ${previewSession.store} has likely been claimed, so its stored authentication is no longer valid.`,
-        previewSession.store,
-        reauthScopesFor(previewSession),
+        previewSession,
       )
     }
 

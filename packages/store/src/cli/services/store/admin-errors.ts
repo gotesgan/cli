@@ -1,4 +1,4 @@
-import {throwReauthenticateStoreAuthError, UNKNOWN_SCOPES_PLACEHOLDER} from './auth/recovery.js'
+import {throwReauthenticateStoreAuthError} from './auth/recovery.js'
 import {clearStoredStoreAppSession} from '@shopify/cli-kit/node/store-auth-session'
 import {AbortError} from '@shopify/cli-kit/node/error'
 import type {StoredStoreAppSession} from '@shopify/cli-kit/node/store-auth-session'
@@ -55,22 +55,16 @@ export function classifyAdminApiError(error: unknown, storeFqdn: string): AbortE
   return undefined
 }
 
-// Preview-store sessions are preapproved for a large, fixed scope catalog (often 30+ scopes).
-// Suggesting the user re-request all of them via `store auth` encourages over-scoping, so a
-// claimed preview store falls back to the same placeholder used when there's no stored auth at
-// all, letting the user choose scopes deliberately instead.
-export function reauthScopesFor(session: StoredStoreAppSession): string {
-  return session.kind === 'preview' ? UNKNOWN_SCOPES_PLACEHOLDER : session.scopes.join(',')
-}
-
 export function throwIfStoredStoreAuthIsInvalid(error: unknown, session: StoredStoreAppSession): void {
   const status = graphQLClientErrorStatus(error)
   if (status !== 401 && status !== 404) return
 
-  clearStoredStoreAppSession(session.store, session.userId)
-  throwReauthenticateStoreAuthError(
-    `Stored app authentication for ${session.store} is no longer valid.`,
-    session.store,
-    reauthScopesFor(session),
-  )
+  // Preview-store sessions are left uncleared: `store auth` overwrites the bucket's
+  // `currentUserId` regardless, and clearing here would make a follow-up `store info` run
+  // fall through to a full interactive login instead of repeating this same actionable message.
+  if (session.kind !== 'preview') {
+    clearStoredStoreAppSession(session.store, session.userId)
+  }
+
+  throwReauthenticateStoreAuthError(`Stored app authentication for ${session.store} is no longer valid.`, session)
 }

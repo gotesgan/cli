@@ -132,6 +132,7 @@ describe('runAdminStoreGraphQLOperation', () => {
         ],
       ],
     })
+    expect(clearStoredStoreAppSession).not.toHaveBeenCalled()
   })
 
   test('throws a GraphQL operation error when errors are returned', async () => {
@@ -289,6 +290,7 @@ describe('fetchPublicApiVersions', () => {
         ],
       ],
     })
+    expect(clearStoredStoreAppSession).not.toHaveBeenCalled()
   })
 
   test('maps 402 Unavailable Shop to an AbortError without clearing stored auth', async () => {

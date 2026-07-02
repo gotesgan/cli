@@ -1,4 +1,5 @@
 import {AbortError} from '@shopify/cli-kit/node/error'
+import type {StoredStoreAppSession} from '@shopify/cli-kit/node/store-auth-session'
 
 export const UNKNOWN_SCOPES_PLACEHOLDER = '<comma-separated-scopes>'
 
@@ -14,6 +15,13 @@ function storeAuthCommandNextStepsToReauthenticate(store: string, scopes: string
   return [['Run', storeAuthCommand(store, scopes), 'to re-authenticate']]
 }
 
+// Preview-store sessions are preapproved for a large, fixed scope catalog (often 30+ scopes).
+// Suggesting the user re-request all of them encourages over-scoping, so they get the same
+// placeholder as the "no stored auth" case and choose deliberately instead.
+function reauthScopesFor(session: StoredStoreAppSession): string {
+  return session.kind === 'preview' ? UNKNOWN_SCOPES_PLACEHOLDER : session.scopes.join(',')
+}
+
 export function throwStoredStoreAuthError(store: string): never {
   throw new AbortError(
     `No stored app authentication found for ${store}.`,
@@ -22,8 +30,12 @@ export function throwStoredStoreAuthError(store: string): never {
   )
 }
 
-export function throwReauthenticateStoreAuthError(message: string, store: string, scopes: string): never {
-  throw new AbortError(message, undefined, storeAuthCommandNextStepsToReauthenticate(store, scopes))
+export function throwReauthenticateStoreAuthError(message: string, session: StoredStoreAppSession): never {
+  throw new AbortError(
+    message,
+    undefined,
+    storeAuthCommandNextStepsToReauthenticate(session.store, reauthScopesFor(session)),
+  )
 }
 
 export function retryStoreAuthWithPermanentDomainError(returnedStore: string): AbortError {

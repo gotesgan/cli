@@ -561,6 +561,29 @@ The CLI is currently unable to prompt for reauthentication.`)
     expect(clearStoredStoreAppSession).toHaveBeenCalledWith(SHOP, '42')
   })
 
+  test('does not re-list scopes or clear a lingering preview session that 401s against Admin', async () => {
+    mockStoreAuthFallback()
+    vi.mocked(loadStoredStoreSession).mockResolvedValue({
+      ...STORED_SESSION,
+      userId: 'preview:placeholder-uuid',
+      kind: 'preview',
+      scopes: ['read_products', 'write_products', 'read_themes'],
+    })
+    vi.mocked(graphqlRequest).mockRejectedValue(makeClientErrorLike(401, 'Unauthorized'))
+
+    await expect(getStoreInfo({store: SHOP})).rejects.toMatchObject({
+      message: `Stored app authentication for ${SHOP} is no longer valid.`,
+      nextSteps: [
+        [
+          'Run',
+          {command: `shopify store auth --store ${SHOP} --scopes <comma-separated-scopes>`},
+          'to re-authenticate',
+        ],
+      ],
+    })
+    expect(clearStoredStoreAppSession).not.toHaveBeenCalled()
+  })
+
   test('also treats Admin 404 as a stored-auth-no-longer-valid signal', async () => {
     mockStoreAuthFallback()
     vi.mocked(graphqlRequest).mockRejectedValue(makeClientErrorLike(404, 'Not Found'))
