@@ -1,9 +1,9 @@
 import {StoreInfoBusinessPlatformStoreNotFoundError, fetchDestinationsContext} from './destinations.js'
 import {fetchOrganizationShop} from './organization-shop.js'
 import {mapPlanToPublicHandle} from './plan.js'
-import {classifyAdminApiError, throwIfStoredStoreAuthIsInvalid} from '../admin-errors.js'
+import {classifyAdminApiError, reauthScopesFor, throwIfStoredStoreAuthIsInvalid} from '../admin-errors.js'
 import {recordStoreFqdnMetadata} from '../attribution.js'
-import {throwReauthenticateStoreAuthError, UNKNOWN_SCOPES_PLACEHOLDER} from '../auth/recovery.js'
+import {throwReauthenticateStoreAuthError} from '../auth/recovery.js'
 import {loadStoredStoreSession} from '../auth/session-lifecycle.js'
 import {getPreviewStore, PreviewStoreRequestError} from '../create/preview/client.js'
 import {storeTypeHandle} from '../store-type.js'
@@ -163,13 +163,10 @@ async function fetchPreviewStoreUrls(previewSession: PreviewStoreSession): Promi
     // isn't needed for `store auth` to take over, and keeping it means every `store info` run
     // keeps producing this same actionable message instead of falling through to a full login.
     if (error instanceof PreviewStoreRequestError && (error.status === 401 || error.status === 404)) {
-      // Preview stores are preapproved for a large, fixed catalog of scopes; blindly suggesting
-      // the user re-request all of them against what's now a live, claimed store would encourage
-      // over-scoping. Point at the placeholder instead so they choose deliberately.
       throwReauthenticateStoreAuthError(
         `The preview store ${previewSession.store} has likely been claimed, so its stored authentication is no longer valid.`,
         previewSession.store,
-        UNKNOWN_SCOPES_PLACEHOLDER,
+        reauthScopesFor(previewSession),
       )
     }
 
