@@ -158,17 +158,10 @@ async function fetchPreviewStoreUrls(previewSession: PreviewStoreSession): Promi
       ...(previewStore.claimUrl ? {saveUrl: previewStore.claimUrl} : {}),
     }
   } catch (error) {
-    // The CLI has no local signal for when a preview store gets claimed through the browser
-    // claim flow; the stored session keeps reporting `kind: 'preview'` forever. A 401/404 from
-    // the preview-stores service is the first indication that the store has moved on and the
-    // cached preview token is no longer valid.
-    //
-    // Deliberately left uncleared: `store auth` overwrites the bucket's `currentUserId` when it
-    // stores a fresh session, so nothing depends on this preview entry being removed first. And
-    // unlike a standard session's refresh-token flow, there's no automatic-retry loop here that
-    // clearing would protect against. Leaving it in place means every `store info` run before
-    // the user re-authenticates keeps producing this same actionable message, instead of
-    // silently falling through to a full interactive login on the next attempt.
+    // The CLI has no local signal for when a preview store gets claimed via the browser; a
+    // 401/404 here is the first indication. The stored session is left uncleared on purpose: it
+    // isn't needed for `store auth` to take over, and keeping it means every `store info` run
+    // keeps producing this same actionable message instead of falling through to a full login.
     if (error instanceof PreviewStoreRequestError && (error.status === 401 || error.status === 404)) {
       throwReauthenticateStoreAuthError(
         `The preview store ${previewSession.store} has likely been claimed, so its stored authentication is no longer valid.`,
