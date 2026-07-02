@@ -7,8 +7,8 @@ function storeAuthCommand(store: string, scopes: string): {command: string} {
   return {command: `shopify store auth --store ${store} --scopes ${scopes}`}
 }
 
-function storeAuthCommandNextSteps(store: string, scopes: string) {
-  return [[storeAuthCommand(store, scopes)]]
+function storeAuthCommandNextStepsWithUnknownScopes(store: string) {
+  return [[storeAuthCommand(store, UNKNOWN_SCOPES_PLACEHOLDER)]]
 }
 
 function storeAuthCommandNextStepsToReauthenticate(store: string, scopes: string) {
@@ -43,6 +43,6 @@ export function retryStoreAuthWithPermanentDomainError(returnedStore: string): A
   return new AbortError(
     'OAuth callback store does not match the requested store.',
     `Shopify returned ${returnedStore} during authentication. Re-run using the permanent store domain:`,
-    storeAuthCommandNextSteps(returnedStore, UNKNOWN_SCOPES_PLACEHOLDER),
+    storeAuthCommandNextStepsWithUnknownScopes(returnedStore),
   )
 }
