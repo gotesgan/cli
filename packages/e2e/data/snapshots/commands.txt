@@ -25,6 +25,7 @@
 │  │  └─ typegen
 │  ├─ generate
 │  │  └─ extension
+│  ├─ graphiql
 │  ├─ import-custom-data-definitions
 │  ├─ import-extensions
 │  ├─ info
@@ -102,6 +103,7 @@
 │  │  ├─ execute
 │  │  └─ status
 │  ├─ execute
+│  ├─ graphiql
 │  └─ info
 ├─ theme
 │  ├─ check
