@@ -1,8 +1,8 @@
 import StoreGraphiQL from './graphiql.js'
-import {openStoreGraphiQL} from '../../services/store/execute/graphiql.js'
+import {openStoreGraphiQL} from '../../services/store/graphiql.js'
 import {beforeEach, describe, expect, test, vi} from 'vitest'
 
-vi.mock('../../services/store/execute/graphiql.js', () => ({openStoreGraphiQL: vi.fn()}))
+vi.mock('../../services/store/graphiql.js', () => ({openStoreGraphiQL: vi.fn()}))
 vi.mock('../../services/store/attribution.js')
 
 describe('store graphiql command', () => {

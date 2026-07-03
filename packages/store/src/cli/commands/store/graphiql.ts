@@ -1,4 +1,4 @@
-import {openStoreGraphiQL} from '../../services/store/execute/graphiql.js'
+import {openStoreGraphiQL} from '../../services/store/graphiql.js'
 import StoreCommand from '../../utilities/store-command.js'
 import {storeFlags} from '../../flags.js'
 import {globalFlags, portFlag} from '@shopify/cli-kit/node/cli'
