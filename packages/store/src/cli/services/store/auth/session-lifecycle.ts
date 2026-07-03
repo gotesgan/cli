@@ -61,11 +61,7 @@ export async function loadStoredStoreSession(store: string): Promise<StoredStore
   }
 
   if (!session.refreshToken) {
-    throwReauthenticateStoreAuthError(
-      `No refresh token stored for ${session.store}.`,
-      session.store,
-      session.scopes.join(','),
-    )
+    throwReauthenticateStoreAuthError(`No refresh token stored for ${session.store}.`, session)
   }
 
   outputDebug(
@@ -84,14 +80,14 @@ export async function loadStoredStoreSession(store: string): Promise<StoredStore
     clearStoredStoreAppSession(session.store, session.userId)
 
     if (error instanceof AbortError && error.message.startsWith(`Token refresh failed for ${session.store} (HTTP `)) {
-      throwReauthenticateStoreAuthError(error.message, session.store, session.scopes.join(','))
+      throwReauthenticateStoreAuthError(error.message, session)
     }
 
     if (
       error instanceof AbortError &&
       error.message === `Token refresh returned an invalid response for ${session.store}.`
     ) {
-      throwReauthenticateStoreAuthError(error.message, session.store, session.scopes.join(','))
+      throwReauthenticateStoreAuthError(error.message, session)
     }
 
     if (error instanceof AbortError && error.message === 'Received an invalid refresh response from Shopify.') {

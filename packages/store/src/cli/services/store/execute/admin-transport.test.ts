@@ -79,8 +79,13 @@ describe('runAdminStoreGraphQLOperation', () => {
 
     await expect(runAdminStoreGraphQLOperation({context, request})).rejects.toMatchObject({
       message: `Stored app authentication for ${store} is no longer valid.`,
-      tryMessage: 'To re-authenticate, run:',
-      nextSteps: [[{command: `shopify store auth --store ${store} --scopes read_products,write_orders`}]],
+      nextSteps: [
+        [
+          'Run',
+          {command: `shopify store auth --store ${store} --scopes read_products,write_orders`},
+          'to re-authenticate',
+        ],
+      ],
     })
     expect(clearStoredStoreAppSession).toHaveBeenCalledWith(store, '42')
   })
@@ -93,6 +98,42 @@ describe('runAdminStoreGraphQLOperation', () => {
       message: `Stored app authentication for ${store} is no longer valid.`,
     })
     expect(clearStoredStoreAppSession).toHaveBeenCalledWith(store, '42')
+  })
+
+  test('also treats a 404 as a stored-auth-no-longer-valid signal', async () => {
+    vi.mocked(graphqlRequest).mockRejectedValue(makeClientErrorLike(404, 'Not Found'))
+    const request = await prepareStoreExecuteRequest({query: 'query { shop { name } }'})
+
+    await expect(runAdminStoreGraphQLOperation({context, request})).rejects.toMatchObject({
+      message: `Stored app authentication for ${store} is no longer valid.`,
+    })
+    expect(clearStoredStoreAppSession).toHaveBeenCalledWith(store, '42')
+  })
+
+  test('flags a likely claim and does not re-list scopes when a lingering preview session 401s', async () => {
+    vi.mocked(graphqlRequest).mockRejectedValue({response: {status: 401}})
+    const request = await prepareStoreExecuteRequest({query: 'query { shop { name } }'})
+    const previewContext = {
+      ...context,
+      session: {
+        ...context.session,
+        userId: 'preview:placeholder-uuid',
+        kind: 'preview' as const,
+        scopes: ['read_products', 'write_products', 'read_themes'],
+      },
+    }
+
+    await expect(runAdminStoreGraphQLOperation({context: previewContext, request})).rejects.toMatchObject({
+      message: `The preview store ${store} has likely been claimed, so its stored authentication is no longer valid.`,
+      nextSteps: [
+        [
+          'Run',
+          {command: `shopify store auth --store ${store} --scopes <comma-separated-scopes>`},
+          'to re-authenticate',
+        ],
+      ],
+    })
+    expect(clearStoredStoreAppSession).not.toHaveBeenCalled()
   })
 
   test('throws a GraphQL operation error when errors are returned', async () => {
@@ -212,8 +253,13 @@ describe('fetchPublicApiVersions', () => {
 
     await expect(fetchPublicApiVersions({adminSession, session})).rejects.toMatchObject({
       message: `Stored app authentication for ${store} is no longer valid.`,
-      tryMessage: 'To re-authenticate, run:',
-      nextSteps: [[{command: `shopify store auth --store ${store} --scopes read_products,write_orders`}]],
+      nextSteps: [
+        [
+          'Run',
+          {command: `shopify store auth --store ${store} --scopes read_products,write_orders`},
+          'to re-authenticate',
+        ],
+      ],
     })
     expect(clearStoredStoreAppSession).toHaveBeenCalledWith(store, '42')
   })
@@ -225,6 +271,28 @@ describe('fetchPublicApiVersions', () => {
       message: `Stored app authentication for ${store} is no longer valid.`,
     })
     expect(clearStoredStoreAppSession).toHaveBeenCalledWith(store, '42')
+  })
+
+  test('flags a likely claim and does not re-list scopes when a lingering preview session 401s', async () => {
+    vi.mocked(graphqlRequest).mockRejectedValue(makeClientErrorLike(401, 'Unauthorized'))
+    const previewSession = {
+      ...session,
+      userId: 'preview:placeholder-uuid',
+      kind: 'preview' as const,
+      scopes: ['read_products', 'write_products', 'read_themes'],
+    }
+
+    await expect(fetchPublicApiVersions({adminSession, session: previewSession})).rejects.toMatchObject({
+      message: `The preview store ${store} has likely been claimed, so its stored authentication is no longer valid.`,
+      nextSteps: [
+        [
+          'Run',
+          {command: `shopify store auth --store ${store} --scopes <comma-separated-scopes>`},
+          'to re-authenticate',
+        ],
+      ],
+    })
+    expect(clearStoredStoreAppSession).not.toHaveBeenCalled()
   })
 
   test('maps 402 Unavailable Shop to an AbortError without clearing stored auth', async () => {

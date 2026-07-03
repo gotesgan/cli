@@ -1,11 +1,9 @@
-import {throwReauthenticateStoreAuthError} from '../auth/recovery.js'
 import {
   classifyAdminApiError,
   isGraphQLClientErrorLike,
   throwIfStoredStoreAuthIsInvalid,
   ABORTED_FETCH_MESSAGE_FRAGMENTS,
 } from '../admin-errors.js'
-import {clearStoredStoreAppSession} from '@shopify/cli-kit/node/store-auth-session'
 import {adminUrl} from '@shopify/cli-kit/node/api/admin'
 import {graphqlRequest} from '@shopify/cli-kit/node/api/graphql'
 import {AbortError} from '@shopify/cli-kit/node/error'
@@ -84,14 +82,7 @@ export async function runAdminStoreGraphQLOperation(input: {
       renderOptions: {stdout: process.stderr},
     })
   } catch (error) {
-    if (isGraphQLClientErrorLike(error) && error.response.status === 401) {
-      clearStoredStoreAppSession(input.context.session.store, input.context.session.userId)
-      throwReauthenticateStoreAuthError(
-        `Stored app authentication for ${input.context.session.store} is no longer valid.`,
-        input.context.session.store,
-        input.context.session.scopes.join(','),
-      )
-    }
+    throwIfStoredStoreAuthIsInvalid(error, input.context.session)
 
     // Status-specific classification (e.g. 402 store-unavailable) must run before the
     // generic GraphQL-errors branch, otherwise a 402 response that also carries

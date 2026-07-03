@@ -82,6 +82,20 @@ interface RawPreviewStoreErrorResponse {
   message?: string
 }
 
+/**
+ * Thrown by `getPreviewStore` for non-2xx responses so callers can classify the failure (e.g. a
+ * 401/404 that signals the preview store has since been claimed) instead of only seeing a
+ * pre-rendered message string.
+ */
+export class PreviewStoreRequestError extends AbortError {
+  public readonly status: number
+
+  constructor(status: number, message: string, tryMessage?: string) {
+    super(message, tryMessage ?? null)
+    this.status = status
+  }
+}
+
 export function getOrCreateCliInstanceId(
   storage: LocalStorage<PreviewStoreClientStorageSchema> = clientStorage(),
 ): string {
@@ -175,7 +189,7 @@ export async function getPreviewStore(
   const rawText = await response.text()
   if (!response.ok) {
     const error = previewStoreGetError(response.status, rawText)
-    throw new AbortError(error.message, error.tryMessage)
+    throw new PreviewStoreRequestError(response.status, error.message, error.tryMessage)
   }
 
   let parsed: RawPreviewStoreGetResponse

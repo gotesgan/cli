@@ -3,8 +3,9 @@ import {fetchOrganizationShop} from './organization-shop.js'
 import {mapPlanToPublicHandle} from './plan.js'
 import {classifyAdminApiError, throwIfStoredStoreAuthIsInvalid} from '../admin-errors.js'
 import {recordStoreFqdnMetadata} from '../attribution.js'
+import {throwStoredAuthInvalidError} from '../auth/recovery.js'
 import {loadStoredStoreSession} from '../auth/session-lifecycle.js'
-import {getPreviewStore} from '../create/preview/client.js'
+import {getPreviewStore, PreviewStoreRequestError} from '../create/preview/client.js'
 import {storeTypeHandle} from '../store-type.js'
 import {getCurrentStoredStoreAppSession} from '@shopify/cli-kit/node/store-auth-session'
 import {AbortError} from '@shopify/cli-kit/node/error'
@@ -147,13 +148,25 @@ interface PreviewStoreUrls {
 }
 
 async function fetchPreviewStoreUrls(previewSession: PreviewStoreSession): Promise<PreviewStoreUrls> {
-  const previewStore = await getPreviewStore({
-    shopId: previewSession.preview.shopId,
-    adminApiToken: previewSession.accessToken,
-  })
-  return {
-    accessUrl: previewStore.accessUrl,
-    ...(previewStore.claimUrl ? {saveUrl: previewStore.claimUrl} : {}),
+  try {
+    const previewStore = await getPreviewStore({
+      shopId: previewSession.preview.shopId,
+      adminApiToken: previewSession.accessToken,
+    })
+    return {
+      accessUrl: previewStore.accessUrl,
+      ...(previewStore.claimUrl ? {saveUrl: previewStore.claimUrl} : {}),
+    }
+  } catch (error) {
+    // The CLI has no local signal for when a preview store gets claimed via the browser; a
+    // 401/404 here is the first indication. The stored session is left uncleared on purpose: it
+    // isn't needed for `store auth` to take over, and keeping it means every `store info` run
+    // keeps producing this same actionable message instead of falling through to a full login.
+    if (error instanceof PreviewStoreRequestError && (error.status === 401 || error.status === 404)) {
+      throwStoredAuthInvalidError(previewSession)
+    }
+
+    throw error
   }
 }
 
