@@ -1,5 +1,23 @@
 # @shopify/theme
 
+## 4.4.0
+
+### Minor Changes
+
+- c954426: Send Shopify-managed crawler signature headers with theme development storefront requests.
+
+### Patch Changes
+
+- 73cebde: Allow `shopify theme pull` and `shopify theme push` to authenticate with a matching `shopify store auth` session when no theme password is provided.
+- 25d9adb: Ignore atomic-write temporary files (e.g. `blocks/foo.liquid.tmp.93809.4dbd82e0b95a`) in the theme dev watcher to prevent crashes when editors save files.
+- Updated dependencies [8ac5e57]
+- Updated dependencies [ac82281]
+- Updated dependencies [3ad1710]
+- Updated dependencies [8604491]
+- Updated dependencies [eddf36d]
+- Updated dependencies [73cebde]
+  - @shopify/cli-kit@4.4.0
+
 ## 4.3.0
 
 ### Patch Changes

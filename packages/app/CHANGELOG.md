@@ -1,5 +1,29 @@
 # @shopify/app
 
+## 4.4.0
+
+### Minor Changes
+
+- 92d78d2: Send Shopify-managed crawler signature headers with theme app extension previews.
+- eddf36d: Add `shopify app graphiql` and `shopify store graphiql` commands for opening authenticated local Admin API GraphiQL sessions.
+
+### Patch Changes
+
+- da3d2e5: Fix dev/deploy bundle uploads feigning success when the GCS upload fails
+- d93a90b: Update Shopify Functions Javy, Javy plugin, and function-runner binaries.
+- Updated dependencies [8ac5e57]
+- Updated dependencies [ac82281]
+- Updated dependencies [3ad1710]
+- Updated dependencies [c954426]
+- Updated dependencies [8604491]
+- Updated dependencies [eddf36d]
+- Updated dependencies [73cebde]
+- Updated dependencies [25d9adb]
+  - @shopify/cli-kit@4.4.0
+  - @shopify/theme@4.4.0
+  - @shopify/organizations@4.4.0
+  - @shopify/plugin-cloudflare@4.4.0
+
 ## 4.3.0
 
 ### Patch Changes

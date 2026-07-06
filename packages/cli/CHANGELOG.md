@@ -1,5 +1,18 @@
 # @shopify/cli
 
+## 4.4.0
+
+### Minor Changes
+
+- 74a758d: Add `shopify store bulk execute`, `shopify store bulk status`, and `shopify store bulk cancel` so you can run Admin API bulk operations against a store using stored auth (`shopify store auth`), without needing an app. Mutations are disabled by default; pass `--allow-mutations` to run them.
+
+### Patch Changes
+
+- 576e816: Improve `store bulk` and `app bulk` topic descriptions in help output
+- 59a43e6: Prevent `app config link` from overwriting the root app config when run from an extension directory
+- d72cf1e: Move help output env labels after flag descriptions.
+- d635ca3: Update the bundled Hydrogen CLI to 13.0.0.
+
 ## 4.3.0
 
 ### Minor Changes
