@@ -546,8 +546,8 @@ describe('link', () => {
       await link(options)
 
       expect(selectConfigName).toHaveBeenCalledWith(tmp, 'app1')
-      expect(await readFile(joinPath(tmp, 'shopify.app.toml'))).toBe(initialContent)
-      expect(await readFile(joinPath(tmp, 'shopify.app.staging.toml'))).toMatchSnapshot()
+      await expect(readFile(joinPath(tmp, 'shopify.app.toml'))).resolves.toBe(initialContent)
+      await expect(readFile(joinPath(tmp, 'shopify.app.staging.toml'))).resolves.toMatchSnapshot()
     })
   })
 
