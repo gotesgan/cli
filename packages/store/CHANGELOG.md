@@ -1,5 +1,26 @@
 # @shopify/store
 
+## 4.4.0
+
+### Minor Changes
+
+- 74a758d: Add `shopify store bulk execute`, `shopify store bulk status`, and `shopify store bulk cancel` so you can run Admin API bulk operations against a store using stored auth (`shopify store auth`), without needing an app. Mutations are disabled by default; pass `--allow-mutations` to run them.
+- eddf36d: Add `shopify app graphiql` and `shopify store graphiql` commands for opening authenticated local Admin API GraphiQL sessions.
+
+### Patch Changes
+
+- 82674f9: Render `store info` details as a two-column data table and surface store URLs as clickable next-step actions (e.g. "View your store").
+- 496e69e: Fix `store info` failing with an unhelpful error on a preview store after it has been claimed; it now prompts to run `store auth` to re-authenticate
+- 73cebde: Allow `shopify theme pull` and `shopify theme push` to authenticate with a matching `shopify store auth` session when no theme password is provided.
+- Updated dependencies [8ac5e57]
+- Updated dependencies [ac82281]
+- Updated dependencies [3ad1710]
+- Updated dependencies [8604491]
+- Updated dependencies [eddf36d]
+- Updated dependencies [73cebde]
+  - @shopify/cli-kit@4.4.0
+  - @shopify/organizations@4.4.0
+
 ## 4.3.0
 
 ### Minor Changes
