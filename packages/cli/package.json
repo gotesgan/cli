@@ -86,6 +86,7 @@
   "engine-strict": true,
   "oclif": {
     "bin": "shopify",
+    "helpClass": "./dist/cli/help.js",
     "commands": {
       "strategy": "explicit",
       "target": "./dist/index.js",

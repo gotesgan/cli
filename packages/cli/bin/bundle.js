@@ -76,6 +76,9 @@ esBuild({
     {in: './src/index.ts', out: 'index'},
     {in: './src/bootstrap.ts', out: 'bootstrap'},
     {in: './src/command-registry.ts', out: 'command-registry'},
+    // Custom oclif help class, loaded at runtime via `oclif.helpClass` in
+    // package.json, so it needs to be emitted as its own entry point.
+    {in: './src/cli/help.ts', out: 'cli/help'},
     ...hookEntryPoints.map(toEntry),
     ...commandEntryPoints.map(toEntry),
     ...externalCommandEntryPoints,
