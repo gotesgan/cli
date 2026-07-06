@@ -68,7 +68,7 @@ export default async function link(options: LinkOptions, shouldRenderSuccess = t
   const flags = remoteApp.flags
   const localAppOptions = await loadLocalAppOptions(options, specifications, flags, remoteApp.apiKey)
   const configFileName = await loadConfigurationFileName(remoteApp, options, {
-    appDirectory: localAppOptions.appDirectory,
+    appDirectory: localAppOptions.appDirectory ?? appDirectory,
   })
 
   await logMetadataForLoadedContext(remoteApp, developerPlatformClient.organizationSource)
@@ -304,14 +304,15 @@ async function loadConfigurationFileName(
   const cache = getCachedCommandInfo()
   if (cache?.selectedToml) return cache.selectedToml as AppConfigurationFileName
 
-  const existingTomls = await getTomls(options.directory)
+  const configDirectory = localAppInfo.appDirectory ?? options.directory
+  const existingTomls = await getTomls(configDirectory)
   const currentToml = existingTomls[remoteApp.apiKey]
   if (currentToml) return currentToml
 
   // If no TOML files exist at all, use the default filename without prompting
   if (isEmpty(existingTomls)) return 'shopify.app.toml'
 
-  return selectConfigName(localAppInfo.appDirectory ?? options.directory, remoteApp.title)
+  return selectConfigName(configDirectory, remoteApp.title)
 }
 
 /**
