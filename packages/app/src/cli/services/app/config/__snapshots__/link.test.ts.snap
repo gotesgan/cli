@@ -282,6 +282,29 @@ use_legacy_install_flow = true
 "
 `;
 
+exports[`link > prompts for a new config name when linking a new app from an extension directory 1`] = `
+"# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "new-api-key"
+name = "app1"
+application_url = "https://example.com"
+embedded = true
+
+[auth]
+redirect_urls = [ "https://example.com/callback1" ]
+
+[webhooks]
+api_version = "2023-07"
+
+[pos]
+embedded = false
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+use_legacy_install_flow = true
+"
+`;
+
 exports[`link > replace arrays content with the remote one 1`] = `
 "# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 

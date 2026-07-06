@@ -15,7 +15,7 @@ import {fetchAppRemoteConfiguration} from '../select-app.js'
 import {DeveloperPlatformClient} from '../../../utilities/developer-platform-client.js'
 import {MinimalAppIdentifiers, OrganizationApp} from '../../../models/organization.js'
 import {beforeEach, describe, expect, test, vi} from 'vitest'
-import {fileExistsSync, inTemporaryDirectory, readFile, writeFileSync} from '@shopify/cli-kit/node/fs'
+import {fileExistsSync, inTemporaryDirectory, mkdir, readFile, writeFileSync} from '@shopify/cli-kit/node/fs'
 import {joinPath} from '@shopify/cli-kit/node/path'
 import {renderSuccess} from '@shopify/cli-kit/node/ui'
 import {outputContent} from '@shopify/cli-kit/node/output'
@@ -511,6 +511,43 @@ describe('link', () => {
         },
       })
       expect(content).toMatchSnapshot()
+    })
+  })
+
+  test('prompts for a new config name when linking a new app from an extension directory', async () => {
+    await inTemporaryDirectory(async (tmp) => {
+      const developerPlatformClient = buildDeveloperPlatformClient()
+      const extensionDirectory = joinPath(tmp, 'extensions', 'discount_function')
+      await mkdir(extensionDirectory)
+      const initialContent = 'client_id = "existing-api-key"\nname = "existing app"\n'
+      writeFileSync(joinPath(tmp, 'shopify.app.toml'), initialContent)
+      const options: LinkOptions = {
+        directory: extensionDirectory,
+        developerPlatformClient,
+      }
+      const localApp = {
+        configPath: joinPath(tmp, 'shopify.app.toml'),
+        configuration: {
+          name: 'existing app',
+          client_id: 'existing-api-key',
+          webhooks: {api_version: '2023-04'},
+          application_url: 'https://myapp.com',
+        } as CurrentAppConfiguration,
+      }
+      await mockLoadOpaqueAppWithApp(tmp, localApp, [], 'current')
+      vi.mocked(fetchOrCreateOrganizationApp).mockResolvedValue(
+        testOrganizationApp({
+          apiKey: 'new-api-key',
+          developerPlatformClient,
+        }),
+      )
+      vi.mocked(selectConfigName).mockResolvedValue('shopify.app.staging.toml')
+
+      await link(options)
+
+      expect(selectConfigName).toHaveBeenCalledWith(tmp, 'app1')
+      expect(await readFile(joinPath(tmp, 'shopify.app.toml'))).toBe(initialContent)
+      expect(await readFile(joinPath(tmp, 'shopify.app.staging.toml'))).toMatchSnapshot()
     })
   })
 
