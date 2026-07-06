@@ -1,6 +1,7 @@
 import {categorizeError, ErrorCategory, formatErrorMessage} from './error-categorizer.js'
 import {graphQLErrorCodes, isPermissionCode, isRateLimitCode} from './graphql-error-codes.js'
 import {GraphQLClientError} from '../api/headers.js'
+import {slugify} from '../../../public/common/string.js'
 import {ClientError} from 'graphql-request'
 
 /**
@@ -156,7 +157,7 @@ function structuredSignature(signals: ErrorGroupingSignals): string {
   if (signals.code) parts.push(signals.code)
   if (parts.length === 0 && signals.errorClass) parts.push(signals.errorClass)
 
-  return slugify(parts.join('-'))
+  return slugify(parts.join('-')).slice(0, 50)
 }
 
 /**
@@ -228,10 +229,3 @@ function errorMessage(error: unknown): string {
   return typeof error === 'string' ? error : ''
 }
 
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 50)
-}

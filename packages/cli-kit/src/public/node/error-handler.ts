@@ -27,7 +27,7 @@ import {realpath} from 'fs/promises'
 
 // Allowed slice names for error analytics grouping.
 // Hardcoded list per product slices to keep analytics consistent.
-const ALLOWED_SLICE_NAMES = new Set<string>(['app', 'theme', 'hydrogen', 'store'])
+const ALLOWED_SLICE_NAMES = new Set<string>(['app', 'theme', 'hydrogen', 'store', 'organization'])
 
 // Derives the product slice from the command that was running (e.g. `theme dev` -> `theme`),
 // defaulting to `cli` when the command is unknown or not in the allow-list.
