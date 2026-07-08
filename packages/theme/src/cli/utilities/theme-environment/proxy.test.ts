@@ -630,16 +630,32 @@ describe('dev proxy', () => {
       expect(headers.Authorization).toBeUndefined()
     })
 
-    test('sends Bearer token for theme-extension type', async () => {
+    test('does NOT send Bearer token for theme-extension type', async () => {
       const extCtx = {
         ...tokenCtx,
-        type: 'theme-extensions',
+        type: 'theme-extension',
       } as unknown as DevServerContext
       const event = createH3Event('GET', '/assets/style.css')
       await proxyStorefrontRequest(event, extCtx)
       const [, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
       const headers = init.headers as Record<string, string>
       expect(headers.Authorization).toBeUndefined()
+    })
+
+    test('strips query string before auth check for /cart.js?sections=header', async () => {
+      const event = createH3Event('GET', '/cart.js?sections=header')
+      await proxyStorefrontRequest(event, tokenCtx)
+      const [, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
+      const headers = init.headers as Record<string, string>
+      expect(headers.Authorization).toBeUndefined()
+    })
+
+    test('sends Bearer token for non-CDN paths that are not cart/checkout/account', async () => {
+      const event = createH3Event('GET', '/products/some-product')
+      await proxyStorefrontRequest(event, tokenCtx)
+      const [, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
+      const headers = init.headers as Record<string, string>
+      expect(headers.Authorization).toBe('Bearer sfr-devtools-token')
     })
   })
 
