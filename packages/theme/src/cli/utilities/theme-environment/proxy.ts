@@ -361,7 +361,9 @@ export function proxyStorefrontRequest(event: H3Event, ctx: DevServerContext): P
       Cookie: buildCookies(ctx.session, {headers}),
       // Cart, checkout, and account endpoints use cookie-based auth.
       // Sending a Bearer token causes SFR to select token auth, which lacks cart scopes.
-      ...(ctx.type === 'theme' && needsBearerToken(event.path) ? {Authorization: `Bearer ${ctx.session.storefrontToken}`} : {}),
+      ...(ctx.type === 'theme' && needsBearerToken(event.path)
+        ? {Authorization: `Bearer ${ctx.session.storefrontToken}`}
+        : {}),
     })
   }
 
